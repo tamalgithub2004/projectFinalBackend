@@ -1,0 +1,36 @@
+# ─────────────────────────────────────────────
+# News Analysis 2.0 — Python dependencies
+# Tested with Python 3.10+
+# Install: pip install -r requirements.txt
+# ─────────────────────────────────────────────
+
+# Web framework & server
+fastapi>=0.111.0
+uvicorn[standard]>=0.29.0
+pydantic>=2.0.0
+
+# Environment variable loading
+python-dotenv>=1.0.0
+
+# Finance data
+yfinance>=0.2.40
+
+# Technical analysis
+ta>=0.11.0
+
+# NLP / FinBERT
+transformers>=4.40.0
+torch>=2.2.0          # CPU-only; swap for torch+cu118 for GPU support
+
+# ML
+scikit-learn>=1.4.0
+numpy>=1.26.0
+pandas>=2.2.0
+
+# News fetching
+feedparser>=6.0.11
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+
+# Jupyter / notebook extras (only needed if running in Colab/Jupyter)
+ipywidgets>=8.1.0
