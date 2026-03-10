@@ -286,11 +286,12 @@ def deep_research(ticker):
     trend = "UPTREND" if latest['MA50'] > latest['MA200'] else "DOWNTREND"
     rsi = round(latest['RSI'], 2)
     volatility = round(df['Return'].std() * 100, 2)
+    volatility_str = f"{volatility}%"
 
     report['technical'] = {
         "trend": trend,
-        "rsi": rsi,
-        "volatility": f"{volatility}%"
+        "rsi": float(rsi),
+        "volatility": volatility_str
     }
 
     company, macro = fetch_market_news(ticker)
@@ -317,8 +318,8 @@ def deep_research(ticker):
             })
 
     report['news_analysis'] = {
-        "company_specific": company_news if company_news else "No recent company-specific headlines found.",
-        "market_macro": macro_news if macro_news else "No recent market or macro news found."
+        "company_specific": company_news if company_news else [],
+        "market_macro": macro_news if macro_news else []
     }
 
     signal = "SIDEWAYS"
@@ -366,15 +367,21 @@ def scan_market(index_name="NIFTY 50", limit=None, top_n=10):
         executor.map(check, stocks)
 
     if not results:
-        return {"message": "No valid stocks scanned."}
+        return {
+            "scan_details": {
+                "index": index_name,
+                "stocks_scanned": 0
+            },
+            "top_most_bullish_stocks": [],
+            "top_most_bearish_stocks": []
+        }
 
     ranked = sorted(results, key=lambda x: x[1], reverse=True)
 
-    top_bullish = [{"stock": stock, "bullish_probability": f"{prob}%"} for stock, prob in ranked[:top_n]]
+    top_bullish = [{"stock": str(stock), "bullish_probability": f"{prob}%"} for stock, prob in ranked[:top_n]]
     
-    # For bearish, we need to re-sort in ascending order
     ranked_bearish = sorted(results, key=lambda x: x[1])
-    top_bearish = [{"stock": stock, "bearish_strength": f"{round(100 - prob, 2)}%"} for stock, prob in ranked_bearish[:top_n]]
+    top_bearish = [{"stock": str(stock), "bearish_strength": f"{round(100 - prob, 2)}%"} for stock, prob in ranked_bearish[:top_n]]
 
     return {
         "scan_details": {

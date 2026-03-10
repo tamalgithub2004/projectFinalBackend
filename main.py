@@ -27,10 +27,12 @@ import logging
 from contextlib import asynccontextmanager
 from typing import Optional
 
+
 import torch
 import uvicorn
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from dotenv import load_dotenv
@@ -94,11 +96,22 @@ async def lifespan(app: FastAPI):
 # App
 # ──────────────────────────────────────────────
 
+
 app = FastAPI(
     title="News Analysis 2.0 API",
     description="Indian stock market sentiment + ML swing-trade signals powered by FinBERT & RandomForest.",
     version="2.0.0",
     lifespan=lifespan,
+)
+
+
+# Allow CORS from all origins
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -174,8 +187,8 @@ def get_news(ticker: str):
         company, macro = fetch_market_news(ticker)
         return {
             "ticker": ticker,
-            "company_news": company,
-            "macro_news": macro,
+            "company_news": company if company else [],
+            "macro_news": macro if macro else [],
         }
     except Exception as exc:
         logger.exception("Error fetching news for %s", ticker)
@@ -389,7 +402,7 @@ def research(ticker: str):
         raise HTTPException(status_code=500, detail=str(exc))
 
 
-# ──────────────────────────────────────────────
+# ──────────────────────────────────────────────    
 
 @app.post("/scan")
 def scan(req: ScanRequest):
@@ -409,6 +422,7 @@ def scan(req: ScanRequest):
         }
 
     Example (curl):
+
         curl -X POST http://localhost:8000/scan \\
              -H "Content-Type: application/json" \\
              -d '{"index_name": "NIFTY 50", "top_n": 5}'
