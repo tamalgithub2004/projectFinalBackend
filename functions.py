@@ -20,9 +20,6 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from sklearn.ensemble import RandomForestClassifier
 from concurrent.futures import ThreadPoolExecutor
 from bs4 import BeautifulSoup
-import requests
-import ipywidgets as widgets
-from IPython.display import display
 
 def fetch_article_snippet(url):
     """
@@ -213,65 +210,6 @@ def get_index(index_name="NIFTY 50"):
             "RELIANCE.NS","TCS.NS","INFY.NS","HDFCBANK.NS","ITC.NS",
             "LT.NS","SBIN.NS","AXISBANK.NS","ICICIBANK.NS","WIPRO.NS"
         ]
-
-# ============================================================
-# MARKET SCANNER
-# ============================================================
-
-from concurrent.futures import ThreadPoolExecutor
-
-def scan_market(index_name="NIFTY 50", limit=None):
-
-    stocks = get_index(index_name)
-
-    if limit:
-        stocks = stocks[:limit]
-
-    results = []
-
-    print(f"\n🔍 Scanning {index_name} ({len(stocks)} stocks)...")
-
-    def check(stock):
-        try:
-            df = load_features(stock)
-            if df is None or len(df) < 200:
-                return
-
-            company, macro = fetch_market_news(stock)
-            sent = weighted_sentiment(company, macro)
-
-            prob = model_prediction(df, sent)
-
-            results.append((stock, round(prob*100,2)))
-
-        except:
-            pass
-
-    with ThreadPoolExecutor(max_workers=6) as executor:
-        executor.map(check, stocks)
-
-    if len(results) == 0:
-        print("No valid stocks scanned.")
-        return
-
-    # Sort entire market by bullish probability
-    ranked = sorted(results, key=lambda x: x[1])
-
-    print("\n==============================")
-    print("MARKET RANKING RESULTS")
-    print("==============================")
-
-    print("\n🟢 TOP MOST BULLISH STOCKS:")
-    top_n = top_dropdown.value
-    for stock, prob in ranked[-top_n:][::-1]:
-        print(f"• {stock} | Bullish Probability: {prob}%")
-
-    print("\n🔴 TOP MOST BEARISH STOCKS:")
-    for stock, prob in ranked[:top_n]:
-        bearish_strength = round(100 - prob, 2)
-        print(f"• {stock} | Bearish Strength: {bearish_strength}%")
-
-    return None
 
 # ============================================================
 # DEEP STOCK RESEARCH
